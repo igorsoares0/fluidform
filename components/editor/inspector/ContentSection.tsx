@@ -1,8 +1,15 @@
 "use client";
 
 import { useEditorStore } from "@/lib/store/editor-store";
-import type { Element, InputType, ButtonAction, TextAlign } from "@/lib/types";
+import type {
+  ButtonAction,
+  Element,
+  InputType,
+  TextAlign,
+} from "@/lib/types";
 import {
+  NumberField,
+  OptionsEditor,
   Row,
   Section,
   SelectField,
@@ -16,6 +23,24 @@ export function ContentSection({ element }: { element: Element }) {
   const updateElement = useEditorStore((s) => s.updateElement);
   const updateStyle = useEditorStore((s) => s.updateStyle);
   const id = element.id;
+
+  // Shared controls reused across field types.
+  const labelRow = "label" in element && (
+    <Row label="Label">
+      <TextField
+        value={element.label}
+        onChange={(label) => updateElement(id, { label })}
+      />
+    </Row>
+  );
+  const requiredRow = "required" in element && (
+    <Row label="Required">
+      <Toggle
+        checked={element.required}
+        onChange={(required) => updateElement(id, { required })}
+      />
+    </Row>
+  );
 
   if (element.type === "heading" || element.type === "text") {
     return (
@@ -42,12 +67,7 @@ export function ContentSection({ element }: { element: Element }) {
   if (element.type === "input") {
     return (
       <Section title="Content">
-        <Row label="Label">
-          <TextField
-            value={element.label}
-            onChange={(label) => updateElement(id, { label })}
-          />
-        </Row>
+        {labelRow}
         <Row label="Placeholder">
           <TextField
             value={element.placeholder}
@@ -67,45 +87,126 @@ export function ContentSection({ element }: { element: Element }) {
             ]}
           />
         </Row>
-        <Row label="Required">
-          <Toggle
-            checked={element.required}
-            onChange={(required) => updateElement(id, { required })}
-          />
-        </Row>
+        {requiredRow}
       </Section>
     );
   }
 
-  // button
-  return (
-    <Section title="Content">
-      <Row label="Label">
-        <TextField
-          value={element.label}
-          onChange={(label) => updateElement(id, { label })}
-        />
-      </Row>
-      <Row label="Action">
-        <SelectField<ButtonAction>
-          value={element.action}
-          onChange={(action) => updateElement(id, { action })}
-          options={[
-            { value: "submit", label: "Submit" },
-            { value: "next", label: "Next step" },
-            { value: "link", label: "Link" },
-          ]}
-        />
-      </Row>
-      {element.action === "link" ? (
-        <Row label="URL">
+  if (element.type === "button") {
+    return (
+      <Section title="Content">
+        <Row label="Label">
           <TextField
-            value={element.href ?? ""}
-            placeholder="https://"
-            onChange={(href) => updateElement(id, { href })}
+            value={element.label}
+            onChange={(label) => updateElement(id, { label })}
           />
         </Row>
-      ) : null}
+        <Row label="Action">
+          <SelectField<ButtonAction>
+            value={element.action}
+            onChange={(action) => updateElement(id, { action })}
+            options={[
+              { value: "submit", label: "Submit" },
+              { value: "next", label: "Next step" },
+              { value: "link", label: "Link" },
+            ]}
+          />
+        </Row>
+        {element.action === "link" ? (
+          <Row label="URL">
+            <TextField
+              value={element.href ?? ""}
+              placeholder="https://"
+              onChange={(href) => updateElement(id, { href })}
+            />
+          </Row>
+        ) : null}
+      </Section>
+    );
+  }
+
+  if (element.type === "select") {
+    return (
+      <Section title="Content">
+        {labelRow}
+        <Row label="Placeholder">
+          <TextField
+            value={element.placeholder}
+            onChange={(placeholder) => updateElement(id, { placeholder })}
+          />
+        </Row>
+        <OptionsEditor
+          value={element.options}
+          onChange={(options) => updateElement(id, { options })}
+        />
+        {requiredRow}
+      </Section>
+    );
+  }
+
+  if (element.type === "radio" || element.type === "checkbox") {
+    return (
+      <Section title="Content">
+        {labelRow}
+        <OptionsEditor
+          value={element.options}
+          onChange={(options) => updateElement(id, { options })}
+        />
+        {requiredRow}
+      </Section>
+    );
+  }
+
+  if (element.type === "rating") {
+    return (
+      <Section title="Content">
+        {labelRow}
+        <Row label="Max stars">
+          <NumberField
+            value={element.max}
+            min={1}
+            max={10}
+            onChange={(max) => updateElement(id, { max })}
+          />
+        </Row>
+        {requiredRow}
+      </Section>
+    );
+  }
+
+  if (element.type === "slider") {
+    return (
+      <Section title="Content">
+        {labelRow}
+        <Row label="Min">
+          <NumberField
+            value={element.min}
+            onChange={(min) => updateElement(id, { min })}
+          />
+        </Row>
+        <Row label="Max">
+          <NumberField
+            value={element.max}
+            onChange={(max) => updateElement(id, { max })}
+          />
+        </Row>
+        <Row label="Step">
+          <NumberField
+            value={element.step}
+            min={1}
+            onChange={(step) => updateElement(id, { step })}
+          />
+        </Row>
+        {requiredRow}
+      </Section>
+    );
+  }
+
+  // nps, date, upload — label + required only
+  return (
+    <Section title="Content">
+      {labelRow}
+      {requiredRow}
     </Section>
   );
 }

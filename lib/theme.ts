@@ -146,6 +146,9 @@ function baseStyle(type: Element["type"], t: ThemeTokens): ElementStyle {
     case "text":
       return { color: t.colors.mutedText };
     case "input":
+    case "select":
+    case "date":
+    case "upload":
       return {
         background: t.colors.surface,
         color: t.colors.text,
@@ -160,7 +163,18 @@ function baseStyle(type: Element["type"], t: ThemeTokens): ElementStyle {
         radius: t.radius,
         shadow: t.shadow,
       };
+    case "radio":
+    case "checkbox":
+    case "rating":
+    case "nps":
+    case "slider":
+      return { color: t.colors.text, borderColor: t.colors.border };
   }
+}
+
+/** The theme's accent color (used by choice/feedback controls). */
+export function themeAccent(theme: ThemeConfig): string {
+  return theme.tokens.colors.primary;
 }
 
 /** Merge only the *defined* keys of `override` onto `base`. */

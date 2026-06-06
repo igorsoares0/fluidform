@@ -8,7 +8,15 @@ export type ElementType =
   | "heading"
   | "text"
   | "input"
-  | "button";
+  | "button"
+  | "select"
+  | "radio"
+  | "checkbox"
+  | "rating"
+  | "nps"
+  | "slider"
+  | "date"
+  | "upload";
 
 /** Absolute position of an element within the canvas, in px. */
 export type Position = {
@@ -79,11 +87,83 @@ export type ButtonElement = BaseElement & {
   href?: string;
 };
 
+/** Dropdown — single choice from `options`. */
+export type SelectElement = BaseElement & {
+  type: "select";
+  label: string;
+  placeholder: string;
+  required: boolean;
+  options: string[];
+};
+
+/** Radio group — single choice. */
+export type RadioElement = BaseElement & {
+  type: "radio";
+  label: string;
+  required: boolean;
+  options: string[];
+};
+
+/** Checkbox group — multiple choice (value is a list). */
+export type CheckboxElement = BaseElement & {
+  type: "checkbox";
+  label: string;
+  required: boolean;
+  options: string[];
+};
+
+/** Star rating from 1..max. */
+export type RatingElement = BaseElement & {
+  type: "rating";
+  label: string;
+  required: boolean;
+  max: number;
+};
+
+/** Net Promoter Score 0..10. */
+export type NpsElement = BaseElement & {
+  type: "nps";
+  label: string;
+  required: boolean;
+};
+
+/** Numeric slider. */
+export type SliderElement = BaseElement & {
+  type: "slider";
+  label: string;
+  required: boolean;
+  min: number;
+  max: number;
+  step: number;
+};
+
+/** Date picker. */
+export type DateElement = BaseElement & {
+  type: "date";
+  label: string;
+  required: boolean;
+};
+
+/** File upload (captures filename only until a backend exists). */
+export type UploadElement = BaseElement & {
+  type: "upload";
+  label: string;
+  required: boolean;
+};
+
 export type Element =
   | HeadingElement
   | TextElement
   | InputElement
-  | ButtonElement;
+  | ButtonElement
+  | SelectElement
+  | RadioElement
+  | CheckboxElement
+  | RatingElement
+  | NpsElement
+  | SliderElement
+  | DateElement
+  | UploadElement;
 
 export type Canvas = {
   width: number;

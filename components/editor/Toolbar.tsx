@@ -1,10 +1,11 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useEditorStore } from "@/lib/store/editor-store";
 import { saveSchema } from "@/lib/persistence";
-import type { Breakpoint } from "@/lib/types";
-import { ELEMENT_REGISTRY, INSERTABLE_TYPES } from "./elements";
+import type { Breakpoint, ElementType } from "@/lib/types";
+import { ELEMENT_GROUPS, ELEMENT_REGISTRY } from "./elements";
 import { Segmented } from "./inspector/controls";
 
 export function Toolbar() {
@@ -18,8 +19,15 @@ export function Toolbar() {
   const canUndo = useEditorStore((s) => s.past.length > 0);
   const canRedo = useEditorStore((s) => s.future.length > 0);
 
+  const [addOpen, setAddOpen] = useState(false);
+
+  const insert = (type: ElementType) => {
+    addElement(type);
+    setAddOpen(false);
+  };
+
   return (
-    <header className="flex h-14 shrink-0 items-center gap-4 border-b border-zinc-200 bg-white px-4">
+    <header className="relative z-30 flex h-14 shrink-0 items-center gap-4 border-b border-zinc-200 bg-white px-4">
       {/* Brand + title */}
       <div className="flex items-center gap-3">
         <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-600 text-sm font-bold text-white">
@@ -34,20 +42,56 @@ export function Toolbar() {
 
       <div className="h-6 w-px bg-zinc-200" />
 
-      {/* Insert elements */}
-      <div className="flex items-center gap-1">
-        {INSERTABLE_TYPES.map((type) => (
-          <motion.button
-            key={type}
-            type="button"
-            whileTap={{ scale: 0.94 }}
-            onClick={() => addElement(type)}
-            className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
-          >
-            {ELEMENT_REGISTRY[type].icon}
-            {ELEMENT_REGISTRY[type].label}
-          </motion.button>
-        ))}
+      {/* Add element menu */}
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setAddOpen((o) => !o)}
+          className="flex items-center gap-1.5 rounded-md bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-700"
+        >
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          Add element
+        </button>
+
+        <AnimatePresence>
+          {addOpen ? (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setAddOpen(false)} />
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.12 }}
+                className="absolute top-full left-0 z-50 mt-2 w-64 rounded-xl border border-zinc-200 bg-white p-3 shadow-xl"
+              >
+                {ELEMENT_GROUPS.map((group) => (
+                  <div key={group.title} className="mb-2 last:mb-0">
+                    <p className="mb-1 px-1 text-[11px] font-semibold tracking-wide text-zinc-400 uppercase">
+                      {group.title}
+                    </p>
+                    <div className="grid grid-cols-3 gap-1">
+                      {group.types.map((type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => insert(type)}
+                          className="flex flex-col items-center gap-1 rounded-lg px-1 py-2 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+                        >
+                          {ELEMENT_REGISTRY[type].icon}
+                          <span className="text-[10px] leading-none">
+                            {ELEMENT_REGISTRY[type].label}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </motion.div>
+            </>
+          ) : null}
+        </AnimatePresence>
       </div>
 
       <div className="ml-auto flex items-center gap-3">
@@ -85,7 +129,7 @@ export function Toolbar() {
             saveSchema(useEditorStore.getState().present);
             window.open("/preview", "_blank", "noopener");
           }}
-          className="rounded-md bg-zinc-900 px-3.5 py-1.5 text-xs font-medium text-white hover:bg-zinc-700"
+          className="rounded-md bg-blue-600 px-3.5 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
         >
           Preview
         </button>

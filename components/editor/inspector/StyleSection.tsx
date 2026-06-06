@@ -12,7 +12,12 @@ import {
   SliderField,
 } from "./controls";
 
-const hasBox = (t: Element["type"]) => t === "input" || t === "button";
+const hasBox = (t: Element["type"]) =>
+  t === "input" ||
+  t === "button" ||
+  t === "select" ||
+  t === "date" ||
+  t === "upload";
 
 export function StyleSection({
   element,

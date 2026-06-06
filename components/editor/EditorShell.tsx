@@ -7,6 +7,7 @@ import { Toolbar } from "./Toolbar";
 import { LayersPanel } from "./LayersPanel";
 import { Canvas } from "./Canvas";
 import { Inspector } from "./Inspector";
+import { StepsBar } from "./StepsBar";
 
 function isEditableTarget(t: EventTarget | null): boolean {
   if (!(t instanceof HTMLElement)) return false;
@@ -81,8 +82,11 @@ export function EditorShell() {
       <Toolbar />
       <div className="flex min-h-0 flex-1">
         <LayersPanel />
-        <main className="min-w-0 flex-1">
-          <Canvas />
+        <main className="flex min-w-0 flex-1 flex-col">
+          <StepsBar />
+          <div className="min-h-0 flex-1">
+            <Canvas />
+          </div>
         </main>
         <Inspector />
       </div>

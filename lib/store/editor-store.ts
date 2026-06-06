@@ -24,16 +24,20 @@ function clone<T>(value: T): T {
     : JSON.parse(JSON.stringify(value));
 }
 
-function createInitialPage(): Page {
+function createPage(name: string): Page {
   return {
     id: uid(),
-    name: "Page 1",
+    name,
     canvas: {
       width: CANVAS_WIDTH.desktop,
       minHeight: CANVAS_MIN_HEIGHT,
       elements: [],
     },
   };
+}
+
+function createInitialPage(): Page {
+  return createPage("Page 1");
 }
 
 export function createInitialSchema(): FormSchema {
@@ -64,6 +68,12 @@ export type EditorState = {
 
   // persistence
   loadSchema: (schema: FormSchema) => void;
+
+  // pages / steps
+  addPage: () => void;
+  deletePage: (id: string) => void;
+  renamePage: (id: string, name: string) => void;
+  setActivePage: (id: string) => void;
 
   // theme (history-tracked)
   setThemePreset: (name: string) => void;
@@ -168,6 +178,33 @@ export const useEditorStore = create<EditorState>((set, get) => {
         activePageId: normalized.pages[0].id,
       });
     },
+
+    addPage: () => {
+      const page = createPage(`Page ${get().present.pages.length + 1}`);
+      commit((sch) => ({ ...sch, pages: [...sch.pages, page] }));
+      set({ activePageId: page.id, selectedIds: [], dragGuides: [] });
+    },
+
+    deletePage: (id) => {
+      const pages = get().present.pages;
+      if (pages.length <= 1) return;
+      const idx = pages.findIndex((p) => p.id === id);
+      commit((sch) => ({ ...sch, pages: sch.pages.filter((p) => p.id !== id) }));
+      if (get().activePageId === id) {
+        const remaining = get().present.pages;
+        const next = remaining[Math.min(idx, remaining.length - 1)];
+        set({ activePageId: next.id, selectedIds: [], dragGuides: [] });
+      }
+    },
+
+    renamePage: (id, name) =>
+      commit((sch) => ({
+        ...sch,
+        pages: sch.pages.map((p) => (p.id === id ? { ...p, name } : p)),
+      })),
+
+    setActivePage: (id) =>
+      set({ activePageId: id, selectedIds: [], dragGuides: [] }),
 
     setThemePreset: (name) =>
       commit((sch) => ({ ...sch, theme: presetTheme(name) })),

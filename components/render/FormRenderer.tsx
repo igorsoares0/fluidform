@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { CANVAS_MIN_HEIGHT, CANVAS_WIDTH } from "@/lib/grid";
-import { resolveElementStyle } from "@/lib/theme";
+import { resolveElementStyle, themeAccent } from "@/lib/theme";
 import type { Breakpoint, Element, FormSchema } from "@/lib/types";
 import {
   RenderButton,
@@ -10,6 +10,24 @@ import {
   RenderInput,
   RenderText,
 } from "./fields";
+import {
+  RenderCheckbox,
+  RenderDate,
+  RenderNps,
+  RenderRadio,
+  RenderRating,
+  RenderSelect,
+  RenderSlider,
+  RenderUpload,
+} from "./extraFields";
+import {
+  displayValue,
+  fieldLabel,
+  isAnswered,
+  isFieldElement,
+  type FieldValue,
+  type Values,
+} from "./value";
 
 function breakpointForWidth(w: number): Breakpoint {
   if (w < 640) return "mobile";
@@ -25,8 +43,6 @@ function canvasHeight(elements: Element[], bp: Breakpoint): number {
   }
   return max;
 }
-
-type Values = Record<string, string>;
 
 export function FormRenderer({ schema }: { schema: FormSchema }) {
   const [vw, setVw] = useState(1024);
@@ -44,6 +60,7 @@ export function FormRenderer({ schema }: { schema: FormSchema }) {
 
   const bp = breakpointForWidth(vw);
   const theme = schema.theme;
+  const accent = themeAccent(theme);
   const pages = schema.pages;
   const page = pages[Math.min(pageIndex, pages.length - 1)];
   const elements = useMemo(
@@ -56,11 +73,14 @@ export function FormRenderer({ schema }: { schema: FormSchema }) {
   const containerWidth = Math.min(vw - 32, cw);
   const scale = containerWidth / cw;
 
+  const setValue = (id: string, v: FieldValue) =>
+    setValues((prev) => ({ ...prev, [id]: v }));
+
   function validateCurrentPage(): boolean {
     const missing = new Set<string>();
     for (const el of elements) {
-      if (el.type === "input" && el.required) {
-        if (!(values[el.id] ?? "").trim()) missing.add(el.id);
+      if (isFieldElement(el) && "required" in el && el.required) {
+        if (!isAnswered(el, values[el.id])) missing.add(el.id);
       }
     }
     setErrors(missing);
@@ -82,12 +102,116 @@ export function FormRenderer({ schema }: { schema: FormSchema }) {
     }
   }
 
+  function renderField(el: Element) {
+    const style = resolveElementStyle(el, theme);
+    const err = errors.has(el.id);
+    switch (el.type) {
+      case "heading":
+        return <RenderHeading element={el} style={style} />;
+      case "text":
+        return <RenderText element={el} style={style} />;
+      case "button":
+        return (
+          <RenderButton element={el} style={style} onActivate={() => activateButton(el)} />
+        );
+      case "input":
+        return (
+          <RenderInput
+            element={el}
+            style={style}
+            value={(values[el.id] as string) ?? ""}
+            error={err}
+            onChange={(v) => setValue(el.id, v)}
+          />
+        );
+      case "select":
+        return (
+          <RenderSelect
+            element={el}
+            style={style}
+            value={(values[el.id] as string) ?? ""}
+            error={err}
+            onChange={(v) => setValue(el.id, v)}
+          />
+        );
+      case "radio":
+        return (
+          <RenderRadio
+            element={el}
+            style={style}
+            accent={accent}
+            value={(values[el.id] as string) ?? ""}
+            onChange={(v) => setValue(el.id, v)}
+          />
+        );
+      case "checkbox":
+        return (
+          <RenderCheckbox
+            element={el}
+            style={style}
+            accent={accent}
+            value={(values[el.id] as string[]) ?? []}
+            onChange={(v) => setValue(el.id, v)}
+          />
+        );
+      case "rating":
+        return (
+          <RenderRating
+            element={el}
+            style={style}
+            accent={accent}
+            value={values[el.id] as number | undefined}
+            onChange={(v) => setValue(el.id, v)}
+          />
+        );
+      case "nps":
+        return (
+          <RenderNps
+            element={el}
+            style={style}
+            accent={accent}
+            value={values[el.id] as number | undefined}
+            onChange={(v) => setValue(el.id, v)}
+          />
+        );
+      case "slider":
+        return (
+          <RenderSlider
+            element={el}
+            style={style}
+            accent={accent}
+            value={values[el.id] as number | undefined}
+            onChange={(v) => setValue(el.id, v)}
+          />
+        );
+      case "date":
+        return (
+          <RenderDate
+            element={el}
+            style={style}
+            value={(values[el.id] as string) ?? ""}
+            error={err}
+            onChange={(v) => setValue(el.id, v)}
+          />
+        );
+      case "upload":
+        return (
+          <RenderUpload
+            element={el}
+            style={style}
+            value={(values[el.id] as string) ?? ""}
+            error={err}
+            onChange={(v) => setValue(el.id, v)}
+          />
+        );
+    }
+  }
+
   if (submitted) {
     const answered = pages
       .flatMap((p) => p.canvas.elements)
-      .filter((e): e is Extract<Element, { type: "input" }> => e.type === "input")
-      .map((e) => ({ label: e.label || e.placeholder || "Field", value: values[e.id] ?? "" }))
-      .filter((e) => e.value.trim().length > 0);
+      .filter((e) => isFieldElement(e) && isAnswered(e, values[e.id]))
+      .map((e) => ({ label: fieldLabel(e), value: displayValue(values[e.id]) }));
 
     return (
       <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-6">
@@ -133,17 +257,14 @@ export function FormRenderer({ schema }: { schema: FormSchema }) {
           </div>
           <div className="h-1 overflow-hidden rounded-full bg-zinc-200">
             <div
-              className="h-full bg-blue-600 transition-all"
-              style={{ width: `${((pageIndex + 1) / pages.length) * 100}%` }}
+              className="h-full transition-all"
+              style={{ width: `${((pageIndex + 1) / pages.length) * 100}%`, background: accent }}
             />
           </div>
         </div>
       ) : null}
 
-      <div
-        className="relative mx-auto"
-        style={{ width: cw * scale, height: ch * scale }}
-      >
+      <div className="relative mx-auto" style={{ width: cw * scale, height: ch * scale }}>
         <div
           className="absolute top-0 left-0 overflow-hidden rounded-xl"
           style={{
@@ -156,34 +277,13 @@ export function FormRenderer({ schema }: { schema: FormSchema }) {
         >
           {elements.map((el) => {
             const p = el.position[bp];
-            const style = resolveElementStyle(el, theme);
             return (
               <div
                 key={el.id}
                 className="absolute"
                 style={{ left: p.x, top: p.y, width: p.width, height: p.height }}
               >
-                {el.type === "heading" ? (
-                  <RenderHeading element={el} style={style} />
-                ) : el.type === "text" ? (
-                  <RenderText element={el} style={style} />
-                ) : el.type === "input" ? (
-                  <RenderInput
-                    element={el}
-                    style={style}
-                    value={values[el.id] ?? ""}
-                    error={errors.has(el.id)}
-                    onChange={(v) =>
-                      setValues((prev) => ({ ...prev, [el.id]: v }))
-                    }
-                  />
-                ) : (
-                  <RenderButton
-                    element={el}
-                    style={style}
-                    onActivate={() => activateButton(el)}
-                  />
-                )}
+                {renderField(el)}
               </div>
             );
           })}

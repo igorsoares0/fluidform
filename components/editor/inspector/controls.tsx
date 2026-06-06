@@ -231,6 +231,56 @@ export function Toggle({
   );
 }
 
+/** Edit a list of option strings (for select / radio / checkbox). */
+export function OptionsEditor({
+  value,
+  onChange,
+}: {
+  value: string[];
+  onChange: (v: string[]) => void;
+}) {
+  const setAt = (i: number, v: string) =>
+    onChange(value.map((o, idx) => (idx === i ? v : o)));
+  const removeAt = (i: number) => onChange(value.filter((_, idx) => idx !== i));
+  const add = () => onChange([...value, `Option ${value.length + 1}`]);
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      {value.map((opt, i) => (
+        <div key={i} className="flex items-center gap-1.5">
+          <input
+            type="text"
+            className={fieldCls}
+            value={opt}
+            onChange={(e) => setAt(i, e.target.value)}
+          />
+          <button
+            type="button"
+            aria-label="Remove option"
+            onClick={() => removeAt(i)}
+            disabled={value.length <= 1}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 disabled:opacity-30 disabled:hover:bg-transparent"
+          >
+            <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M5 12h14" />
+            </svg>
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={add}
+        className="mt-0.5 flex items-center gap-1 self-start rounded px-1.5 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50"
+      >
+        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+        Add option
+      </button>
+    </div>
+  );
+}
+
 const segBtn =
   "flex-1 rounded px-2 py-1 text-xs font-medium transition-colors";
 
