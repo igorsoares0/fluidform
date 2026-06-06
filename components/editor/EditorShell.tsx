@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useEditorStore } from "@/lib/store/editor-store";
+import { loadSchema, saveSchema } from "@/lib/persistence";
 import { Toolbar } from "./Toolbar";
 import { LayersPanel } from "./LayersPanel";
 import { Canvas } from "./Canvas";
@@ -19,6 +20,24 @@ function isEditableTarget(t: EventTarget | null): boolean {
 }
 
 export function EditorShell() {
+  // Restore the saved form on mount, then autosave (debounced) on every change.
+  useEffect(() => {
+    const saved = loadSchema();
+    if (saved) useEditorStore.getState().loadSchema(saved);
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const unsub = useEditorStore.subscribe((state, prev) => {
+      if (state.present === prev.present) return;
+      clearTimeout(timer);
+      const schema = state.present;
+      timer = setTimeout(() => saveSchema(schema), 400);
+    });
+    return () => {
+      clearTimeout(timer);
+      unsub();
+    };
+  }, []);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const store = useEditorStore.getState();

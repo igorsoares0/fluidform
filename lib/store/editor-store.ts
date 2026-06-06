@@ -59,6 +59,9 @@ export type EditorState = {
   activePage: () => Page;
   activeElements: () => Element[];
 
+  // persistence
+  loadSchema: (schema: FormSchema) => void;
+
   // schema mutations (history-tracked)
   setTitle: (title: string) => void;
   addElement: (type: ElementType) => void;
@@ -143,6 +146,16 @@ export const useEditorStore = create<EditorState>((set, get) => {
       );
     },
     activeElements: () => get().activePage().canvas.elements,
+
+    loadSchema: (schema) =>
+      set({
+        present: schema,
+        past: [],
+        future: [],
+        selectedIds: [],
+        dragGuides: [],
+        activePageId: schema.pages[0].id,
+      }),
 
     setTitle: (title) => commit((sch) => ({ ...sch, title })),
 

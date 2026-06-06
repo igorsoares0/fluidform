@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useEditorStore } from "@/lib/store/editor-store";
+import { saveSchema } from "@/lib/persistence";
 import type { Breakpoint } from "@/lib/types";
 import { ELEMENT_REGISTRY, INSERTABLE_TYPES } from "./elements";
 import { Segmented } from "./inspector/controls";
@@ -74,6 +75,20 @@ export function Toolbar() {
             ]}
           />
         </div>
+
+        <div className="h-6 w-px bg-zinc-200" />
+
+        {/* Preview: flush latest schema, then open the public renderer. */}
+        <button
+          type="button"
+          onClick={() => {
+            saveSchema(useEditorStore.getState().present);
+            window.open("/preview", "_blank", "noopener");
+          }}
+          className="rounded-md bg-zinc-900 px-3.5 py-1.5 text-xs font-medium text-white hover:bg-zinc-700"
+        >
+          Preview
+        </button>
       </div>
     </header>
   );
