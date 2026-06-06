@@ -4,7 +4,7 @@ import { useRef, type PointerEvent as ReactPointerEvent } from "react";
 import { useEditorStore } from "@/lib/store/editor-store";
 import { clamp, MIN_ELEMENT_SIZE } from "@/lib/grid";
 import { edgeCandidates, snapEdge, snapMove, type Guide } from "@/lib/snapping";
-import type { Breakpoint, Element, Position } from "@/lib/types";
+import type { Breakpoint, Element, Position, ThemeConfig } from "@/lib/types";
 import { renderElement } from "./elements";
 
 type Handle = {
@@ -31,10 +31,12 @@ export function CanvasElement({
   element,
   breakpoint,
   canvas,
+  theme,
 }: {
   element: Element;
   breakpoint: Breakpoint;
   canvas: CanvasDims;
+  theme: ThemeConfig;
 }) {
   const selected = useEditorStore((s) => s.selectedIds.includes(element.id));
   const interaction = useRef(false);
@@ -191,7 +193,7 @@ export function CanvasElement({
         className="h-full w-full overflow-hidden"
         style={{ pointerEvents: "none", userSelect: "none" }}
       >
-        {renderElement(element)}
+        {renderElement(element, theme)}
       </div>
 
       {selected && !element.locked

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { CANVAS_MIN_HEIGHT, CANVAS_WIDTH } from "@/lib/grid";
+import { resolveElementStyle } from "@/lib/theme";
 import type { Breakpoint, Element, FormSchema } from "@/lib/types";
 import {
   RenderButton,
@@ -42,6 +43,7 @@ export function FormRenderer({ schema }: { schema: FormSchema }) {
   }, []);
 
   const bp = breakpointForWidth(vw);
+  const theme = schema.theme;
   const pages = schema.pages;
   const page = pages[Math.min(pageIndex, pages.length - 1)];
   const elements = useMemo(
@@ -117,7 +119,10 @@ export function FormRenderer({ schema }: { schema: FormSchema }) {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 py-10">
+    <div
+      className="min-h-screen py-10"
+      style={{ backgroundColor: theme.tokens.colors.background, fontFamily: theme.tokens.fontFamily }}
+    >
       {pages.length > 1 ? (
         <div className="mx-auto mb-6 w-full max-w-md px-4">
           <div className="mb-1.5 flex justify-between text-xs text-zinc-400">
@@ -140,16 +145,18 @@ export function FormRenderer({ schema }: { schema: FormSchema }) {
         style={{ width: cw * scale, height: ch * scale }}
       >
         <div
-          className="absolute top-0 left-0 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-zinc-200"
+          className="absolute top-0 left-0 overflow-hidden rounded-xl"
           style={{
             width: cw,
             height: ch,
+            backgroundColor: theme.tokens.colors.background,
             transform: `scale(${scale})`,
             transformOrigin: "top left",
           }}
         >
           {elements.map((el) => {
             const p = el.position[bp];
+            const style = resolveElementStyle(el, theme);
             return (
               <div
                 key={el.id}
@@ -157,12 +164,13 @@ export function FormRenderer({ schema }: { schema: FormSchema }) {
                 style={{ left: p.x, top: p.y, width: p.width, height: p.height }}
               >
                 {el.type === "heading" ? (
-                  <RenderHeading element={el} />
+                  <RenderHeading element={el} style={style} />
                 ) : el.type === "text" ? (
-                  <RenderText element={el} />
+                  <RenderText element={el} style={style} />
                 ) : el.type === "input" ? (
                   <RenderInput
                     element={el}
+                    style={style}
                     value={values[el.id] ?? ""}
                     error={errors.has(el.id)}
                     onChange={(v) =>
@@ -170,7 +178,11 @@ export function FormRenderer({ schema }: { schema: FormSchema }) {
                     }
                   />
                 ) : (
-                  <RenderButton element={el} onActivate={() => activateButton(el)} />
+                  <RenderButton
+                    element={el}
+                    style={style}
+                    onActivate={() => activateButton(el)}
+                  />
                 )}
               </div>
             );

@@ -10,6 +10,7 @@ export function Canvas() {
   const page = useEditorStore((s) =>
     s.present.pages.find((p) => p.id === s.activePageId),
   );
+  const theme = useEditorStore((s) => s.present.theme);
   const clearSelection = useEditorStore((s) => s.clearSelection);
 
   if (!page) return null;
@@ -21,13 +22,15 @@ export function Canvas() {
   return (
     <div className="flex h-full w-full justify-center overflow-auto bg-zinc-100 p-10">
       <div
-        className="relative shrink-0 rounded-xl bg-white shadow-sm ring-1 ring-zinc-200"
+        className="relative shrink-0 rounded-xl shadow-sm ring-1 ring-zinc-200"
         style={{
           width,
           minHeight,
+          backgroundColor: theme.tokens.colors.background,
+          fontFamily: theme.tokens.fontFamily,
           // Decorative grid dots aligned to the snapping columns.
           backgroundImage:
-            "radial-gradient(circle, rgba(0,0,0,0.05) 1px, transparent 1px)",
+            "radial-gradient(circle, rgba(127,127,127,0.12) 1px, transparent 1px)",
           backgroundSize: `${col}px ${col}px`,
         }}
         onPointerDown={(e) => {
@@ -42,6 +45,7 @@ export function Canvas() {
               element={el}
               breakpoint={breakpoint}
               canvas={{ width, height: minHeight }}
+              theme={theme}
             />
           ))}
         <AlignmentGuides />

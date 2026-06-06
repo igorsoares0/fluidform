@@ -5,10 +5,12 @@ import { ELEMENT_REGISTRY } from "./elements";
 import { ContentSection } from "./inspector/ContentSection";
 import { LayoutSection } from "./inspector/LayoutSection";
 import { StyleSection } from "./inspector/StyleSection";
+import { ThemePanel } from "./inspector/ThemePanel";
 
 export function Inspector() {
   const breakpoint = useEditorStore((s) => s.breakpoint);
   const selectedIds = useEditorStore((s) => s.selectedIds);
+  const theme = useEditorStore((s) => s.present.theme);
   const elements = useEditorStore((s) =>
     s.present.pages.find((p) => p.id === s.activePageId)?.canvas.elements,
   );
@@ -25,7 +27,7 @@ export function Inspector() {
           ? ELEMENT_REGISTRY[selected.type].label
           : selectedIds.length > 1
             ? `${selectedIds.length} selected`
-            : "Inspector"}
+            : "Theme"}
       </div>
 
       <div className="flex-1 overflow-y-auto">
@@ -33,14 +35,15 @@ export function Inspector() {
           <>
             <ContentSection element={selected} />
             <LayoutSection element={selected} breakpoint={breakpoint} />
-            <StyleSection element={selected} />
+            <StyleSection element={selected} theme={theme} />
           </>
-        ) : (
+        ) : selectedIds.length > 1 ? (
           <div className="px-4 py-10 text-center text-xs text-zinc-400">
-            {selectedIds.length > 1
-              ? "Multiple elements selected. Select a single element to edit its properties."
-              : "Select an element on the canvas to edit its content, layout, and style."}
+            Multiple elements selected. Select a single element to edit its
+            properties.
           </div>
+        ) : (
+          <ThemePanel />
         )}
       </div>
     </aside>

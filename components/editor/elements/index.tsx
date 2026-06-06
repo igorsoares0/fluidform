@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import type { Element, ElementType } from "@/lib/types";
+import type { Element, ElementType, ThemeConfig } from "@/lib/types";
+import { resolveElementStyle } from "@/lib/theme";
 import { HeadingElement } from "./HeadingElement";
 import { TextElement } from "./TextElement";
 import { InputElement } from "./InputElement";
@@ -56,16 +57,17 @@ export const INSERTABLE_TYPES: ElementType[] = [
   "button",
 ];
 
-/** Dispatch an element to its presentational renderer (type -> component). */
-export function renderElement(element: Element): ReactNode {
+/** Dispatch an element to its renderer with theme-resolved style applied. */
+export function renderElement(element: Element, theme: ThemeConfig): ReactNode {
+  const style = resolveElementStyle(element, theme);
   switch (element.type) {
     case "heading":
-      return <HeadingElement element={element} />;
+      return <HeadingElement element={element} style={style} />;
     case "text":
-      return <TextElement element={element} />;
+      return <TextElement element={element} style={style} />;
     case "input":
-      return <InputElement element={element} />;
+      return <InputElement element={element} style={style} />;
     case "button":
-      return <ButtonElement element={element} />;
+      return <ButtonElement element={element} style={style} />;
   }
 }

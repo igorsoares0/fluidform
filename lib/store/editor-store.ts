@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { CANVAS_MIN_HEIGHT, CANVAS_WIDTH } from "../grid";
 import { createElement, uid } from "../defaults";
+import { defaultTheme, normalizeSchema, presetTheme } from "../theme";
 import type { Guide } from "../snapping";
 import type {
   Breakpoint,
@@ -11,6 +12,8 @@ import type {
   FormSchema,
   Page,
   Position,
+  ThemeColors,
+  ThemeTokens,
 } from "../types";
 
 const HISTORY_LIMIT = 100;
@@ -38,7 +41,7 @@ export function createInitialSchema(): FormSchema {
   return {
     id: uid(),
     title: "Untitled form",
-    theme: { preset: "minimal" },
+    theme: defaultTheme(),
     pages: [page],
     settings: { showProgress: false },
   };
@@ -61,6 +64,13 @@ export type EditorState = {
 
   // persistence
   loadSchema: (schema: FormSchema) => void;
+
+  // theme (history-tracked)
+  setThemePreset: (name: string) => void;
+  updateThemeColors: (patch: Partial<ThemeColors>) => void;
+  updateThemeProp: (
+    patch: Partial<Pick<ThemeTokens, "radius" | "shadow" | "fontFamily">>,
+  ) => void;
 
   // schema mutations (history-tracked)
   setTitle: (title: string) => void;
@@ -147,15 +157,39 @@ export const useEditorStore = create<EditorState>((set, get) => {
     },
     activeElements: () => get().activePage().canvas.elements,
 
-    loadSchema: (schema) =>
+    loadSchema: (schema) => {
+      const normalized = normalizeSchema(schema);
       set({
-        present: schema,
+        present: normalized,
         past: [],
         future: [],
         selectedIds: [],
         dragGuides: [],
-        activePageId: schema.pages[0].id,
-      }),
+        activePageId: normalized.pages[0].id,
+      });
+    },
+
+    setThemePreset: (name) =>
+      commit((sch) => ({ ...sch, theme: presetTheme(name) })),
+    updateThemeColors: (patch) =>
+      commit((sch) => ({
+        ...sch,
+        theme: {
+          preset: "custom",
+          tokens: {
+            ...sch.theme.tokens,
+            colors: { ...sch.theme.tokens.colors, ...patch },
+          },
+        },
+      })),
+    updateThemeProp: (patch) =>
+      commit((sch) => ({
+        ...sch,
+        theme: {
+          preset: "custom",
+          tokens: { ...sch.theme.tokens, ...patch },
+        },
+      })),
 
     setTitle: (title) => commit((sch) => ({ ...sch, title })),
 

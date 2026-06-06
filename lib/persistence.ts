@@ -1,3 +1,4 @@
+import { normalizeSchema } from "./theme";
 import type { FormSchema } from "./types";
 
 // Frontend-only persistence. The whole FormSchema is autosaved to localStorage
@@ -62,7 +63,7 @@ export function getSchemaSnapshot(): FormSchema | null {
   if (raw) {
     try {
       const parsed = JSON.parse(raw);
-      value = isValidSchema(parsed) ? parsed : null;
+      value = isValidSchema(parsed) ? normalizeSchema(parsed) : null;
     } catch {
       value = null;
     }

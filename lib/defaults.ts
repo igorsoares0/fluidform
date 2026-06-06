@@ -44,6 +44,9 @@ let insertCount = 0;
 type Factory = (y: number) => Element;
 
 const factories: Record<ElementType, Factory> = {
+  // Factories set only structural/typographic identity. Colors, surfaces,
+  // borders and radius come from the theme (see lib/theme.ts) so switching
+  // presets restyles every element. Per-element `style` overrides the theme.
   heading: (y) => ({
     id: uid(),
     type: "heading",
@@ -52,13 +55,7 @@ const factories: Record<ElementType, Factory> = {
     locked: false,
     hidden: false,
     text: "Heading",
-    style: {
-      fontSize: 36,
-      fontWeight: 700,
-      color: "#0a0a0a",
-      textAlign: "center",
-      opacity: 1,
-    },
+    style: { fontSize: 36, fontWeight: 700, textAlign: "center", opacity: 1 },
   }),
   text: (y) => ({
     id: uid(),
@@ -68,13 +65,7 @@ const factories: Record<ElementType, Factory> = {
     locked: false,
     hidden: false,
     text: "Add your supporting text here.",
-    style: {
-      fontSize: 16,
-      fontWeight: 400,
-      color: "#52525b",
-      textAlign: "center",
-      opacity: 1,
-    },
+    style: { fontSize: 16, fontWeight: 400, textAlign: "center", opacity: 1 },
   }),
   input: (y) => ({
     id: uid(),
@@ -87,15 +78,7 @@ const factories: Record<ElementType, Factory> = {
     placeholder: "you@example.com",
     required: true,
     inputType: "email",
-    style: {
-      fontSize: 15,
-      color: "#0a0a0a",
-      background: "#ffffff",
-      borderColor: "#d4d4d8",
-      borderWidth: 1,
-      radius: 10,
-      opacity: 1,
-    },
+    style: { fontSize: 15, opacity: 1 },
   }),
   button: (y) => ({
     id: uid(),
@@ -106,15 +89,7 @@ const factories: Record<ElementType, Factory> = {
     hidden: false,
     label: "Submit",
     action: "submit",
-    style: {
-      fontSize: 15,
-      fontWeight: 600,
-      color: "#ffffff",
-      background: "#2563eb",
-      radius: 10,
-      opacity: 1,
-      textAlign: "center",
-    },
+    style: { fontSize: 15, fontWeight: 600, textAlign: "center", opacity: 1 },
   }),
 };
 

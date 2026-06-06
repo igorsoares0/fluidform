@@ -22,13 +22,35 @@ export function Section({
 export function Row({
   label,
   children,
+  onReset,
 }: {
   label: string;
   children: ReactNode;
+  /** When set, a small "reset to theme" control appears next to the label. */
+  onReset?: () => void;
 }) {
   return (
     <label className="flex items-center justify-between gap-3">
-      <span className="shrink-0 text-xs text-zinc-500">{label}</span>
+      <span className="flex shrink-0 items-center gap-1 text-xs text-zinc-500">
+        {label}
+        {onReset ? (
+          <button
+            type="button"
+            title="Reset to theme"
+            aria-label="Reset to theme"
+            onClick={(e) => {
+              e.preventDefault();
+              onReset();
+            }}
+            className="text-zinc-300 hover:text-blue-600"
+          >
+            <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.7L3 8" />
+              <path d="M3 3v5h5" />
+            </svg>
+          </button>
+        ) : null}
+      </span>
       <div className="flex min-w-0 flex-1 justify-end">{children}</div>
     </label>
   );

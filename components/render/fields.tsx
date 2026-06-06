@@ -2,6 +2,7 @@
 
 import type {
   ButtonElement,
+  ElementStyle,
   HeadingElement,
   InputElement,
   InputType,
@@ -17,8 +18,14 @@ const INPUT_TYPE_MAP: Record<InputType, string> = {
   password: "password",
 };
 
-export function RenderHeading({ element }: { element: HeadingElement }) {
-  const align = element.style.textAlign ?? "left";
+export function RenderHeading({
+  element,
+  style,
+}: {
+  element: HeadingElement;
+  style: ElementStyle;
+}) {
+  const align = style.textAlign ?? "left";
   return (
     <div
       className="flex h-full w-full items-center"
@@ -27,17 +34,23 @@ export function RenderHeading({ element }: { element: HeadingElement }) {
           align === "center" ? "center" : align === "right" ? "flex-end" : "flex-start",
       }}
     >
-      <h2 className="w-full leading-tight" style={textStyle(element.style)}>
+      <h2 className="w-full leading-tight" style={textStyle(style)}>
         {element.text}
       </h2>
     </div>
   );
 }
 
-export function RenderText({ element }: { element: TextElement }) {
+export function RenderText({
+  element,
+  style,
+}: {
+  element: TextElement;
+  style: ElementStyle;
+}) {
   return (
     <div className="flex h-full w-full items-center">
-      <p className="w-full leading-relaxed" style={textStyle(element.style)}>
+      <p className="w-full leading-relaxed" style={textStyle(style)}>
         {element.text}
       </p>
     </div>
@@ -46,11 +59,13 @@ export function RenderText({ element }: { element: TextElement }) {
 
 export function RenderInput({
   element,
+  style,
   value,
   error,
   onChange,
 }: {
   element: InputElement;
+  style: ElementStyle;
   value: string;
   error?: boolean;
   onChange: (v: string) => void;
@@ -58,10 +73,7 @@ export function RenderInput({
   return (
     <div className="flex h-full w-full flex-col gap-1.5">
       {element.label ? (
-        <label
-          className="text-sm font-medium"
-          style={{ color: element.style.color ?? "#0a0a0a" }}
-        >
+        <label className="text-sm font-medium" style={{ color: style.color }}>
           {element.label}
           {element.required ? <span className="text-red-500"> *</span> : null}
         </label>
@@ -74,10 +86,10 @@ export function RenderInput({
         onChange={(e) => onChange(e.target.value)}
         className="min-h-10 flex-1 px-3 text-sm outline-none focus:ring-2 focus:ring-blue-500"
         style={{
-          ...boxStyle(element.style),
-          borderColor: error ? "#ef4444" : element.style.borderColor,
+          ...boxStyle(style),
+          borderColor: error ? "#ef4444" : style.borderColor,
           borderStyle: "solid",
-          borderWidth: element.style.borderWidth ?? 1,
+          borderWidth: style.borderWidth ?? 1,
         }}
       />
       {error ? (
@@ -89,9 +101,11 @@ export function RenderInput({
 
 export function RenderButton({
   element,
+  style,
   onActivate,
 }: {
   element: ButtonElement;
+  style: ElementStyle;
   onActivate: () => void;
 }) {
   return (
@@ -100,10 +114,10 @@ export function RenderButton({
       onClick={onActivate}
       className="h-full w-full cursor-pointer px-4 font-semibold transition-opacity hover:opacity-90"
       style={{
-        ...boxStyle(element.style),
-        fontSize: element.style.fontSize,
-        fontWeight: element.style.fontWeight,
-        color: element.style.color,
+        ...boxStyle(style),
+        fontSize: style.fontSize,
+        fontWeight: style.fontWeight,
+        color: style.color,
       }}
     >
       {element.label}

@@ -97,9 +97,30 @@ export type Page = {
   canvas: Canvas;
 };
 
-/** Minimal stubs for now — full theme/settings engines land in later milestones. */
+/**
+ * Theme tokens drive the whole form's look. Elements inherit these by default;
+ * a per-element `style` field only overrides specific tokens when set.
+ */
+export type ThemeColors = {
+  background: string; // page / canvas background
+  surface: string; // input + card background
+  text: string; // primary text
+  mutedText: string; // secondary text
+  primary: string; // CTA / accent background
+  primaryText: string; // text on primary
+  border: string; // input + card borders
+};
+
+export type ThemeTokens = {
+  colors: ThemeColors;
+  fontFamily: string; // CSS font-family stack applied at the form root
+  radius: number; // base corner radius
+  shadow: ShadowToken; // default elevation for surfaces
+};
+
 export type ThemeConfig = {
-  preset: string;
+  preset: string; // preset name, or "custom" once tokens are edited
+  tokens: ThemeTokens;
 };
 
 export type FormSettings = {

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEditorStore } from "@/lib/store/editor-store";
-import type { Element, ShadowToken } from "@/lib/types";
+import { resolveElementStyle } from "@/lib/theme";
+import type { Element, ShadowToken, ThemeConfig } from "@/lib/types";
 import {
   ColorField,
   NumberField,
@@ -13,14 +14,29 @@ import {
 
 const hasBox = (t: Element["type"]) => t === "input" || t === "button";
 
-export function StyleSection({ element }: { element: Element }) {
+export function StyleSection({
+  element,
+  theme,
+}: {
+  element: Element;
+  theme: ThemeConfig;
+}) {
   const updateStyle = useEditorStore((s) => s.updateStyle);
   const id = element.id;
-  const st = element.style;
+  // Display the *resolved* values (theme defaults + overrides) so the controls
+  // reflect what's actually rendered. Editing writes a per-element override.
+  const st = resolveElementStyle(element, theme);
+  const own = element.style;
+
+  // Reset a theme-driven property back to inheriting from the theme.
+  const reset = (key: keyof typeof own) =>
+    own[key] !== undefined
+      ? () => updateStyle(id, { [key]: undefined })
+      : undefined;
 
   return (
     <Section title="Style">
-      <Row label="Text color">
+      <Row label="Text color" onReset={reset("color")}>
         <ColorField
           value={st.color ?? "#000000"}
           onChange={(color) => updateStyle(id, { color })}
@@ -54,13 +70,13 @@ export function StyleSection({ element }: { element: Element }) {
 
       {hasBox(element.type) ? (
         <>
-          <Row label="Background">
+          <Row label="Background" onReset={reset("background")}>
             <ColorField
               value={st.background ?? "#ffffff"}
               onChange={(background) => updateStyle(id, { background })}
             />
           </Row>
-          <Row label="Border">
+          <Row label="Border" onReset={reset("borderColor")}>
             <ColorField
               value={st.borderColor ?? "#d4d4d8"}
               onChange={(borderColor) => updateStyle(id, { borderColor })}
@@ -74,14 +90,14 @@ export function StyleSection({ element }: { element: Element }) {
               onChange={(borderWidth) => updateStyle(id, { borderWidth })}
             />
           </Row>
-          <Row label="Radius">
+          <Row label="Radius" onReset={reset("radius")}>
             <NumberField
               value={st.radius ?? 0}
               min={0}
               onChange={(radius) => updateStyle(id, { radius })}
             />
           </Row>
-          <Row label="Shadow">
+          <Row label="Shadow" onReset={reset("shadow")}>
             <SelectField<ShadowToken>
               value={st.shadow ?? "none"}
               onChange={(shadow) => updateStyle(id, { shadow })}
