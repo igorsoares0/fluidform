@@ -57,6 +57,7 @@ export function FormRenderer({
   formId?: string;
 }) {
   const [vw, setVw] = useState(1024);
+  const [vh, setVh] = useState(768);
   const [pageIndex, setPageIndex] = useState(0);
   const [values, setValues] = useState<Values>({});
   const [errors, setErrors] = useState<Set<string>>(new Set());
@@ -64,7 +65,10 @@ export function FormRenderer({
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const onResize = () => setVw(window.innerWidth);
+    const onResize = () => {
+      setVw(window.innerWidth);
+      setVh(window.innerHeight);
+    };
     onResize();
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
@@ -85,10 +89,20 @@ export function FormRenderer({
   // Height stays stable (based on non-hidden elements) so toggling fields
   // doesn't make the form jump.
   const ch = canvasHeight(pageElements, bp);
-  // Scale the fixed-width canvas to fill the full viewport width so the design
-  // is edge-to-edge (full-bleed), matching the editor. This can upscale on wide
-  // screens — the whole canvas scales proportionally, like a landing page.
+  // Always scale to the viewport width: the design is edge-to-edge horizontally
+  // (a full-bleed image hugs the left, and the right-side form is never cut).
   const scale = vw / cw;
+  // A full-bleed image can make the canvas taller than the viewport. We crop
+  // that *decorative* vertical overflow (no scroll) as long as no actual field
+  // sits below the fold. Only when a field would be hidden do we fall back to
+  // scrolling, so nothing important is ever lost.
+  let fieldBottom = 0;
+  for (const el of pageElements) {
+    if (el.type === "image") continue;
+    const p = el.position[bp];
+    fieldBottom = Math.max(fieldBottom, p.y + p.height);
+  }
+  const needsScroll = fieldBottom * scale > vh;
 
   const setValue = (id: string, v: FieldValue) =>
     setValues((prev) => ({ ...prev, [id]: v }));
@@ -278,7 +292,7 @@ export function FormRenderer({
 
   return (
     <div
-      className="min-h-screen overflow-x-hidden"
+      className={needsScroll ? "min-h-screen overflow-x-hidden" : "h-screen overflow-hidden"}
       style={{ backgroundColor: theme.tokens.colors.background, fontFamily: theme.tokens.fontFamily }}
     >
       {visiblePages.length > 1 ? (
