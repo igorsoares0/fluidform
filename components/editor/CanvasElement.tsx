@@ -31,11 +31,13 @@ export function CanvasElement({
   element,
   breakpoint,
   canvas,
+  scale,
   theme,
 }: {
   element: Element;
   breakpoint: Breakpoint;
   canvas: CanvasDims;
+  scale: number;
   theme: ThemeConfig;
 }) {
   const selected = useEditorStore((s) => s.selectedIds.includes(element.id));
@@ -81,8 +83,9 @@ export function CanvasElement({
     interaction.current = true;
 
     const onMove = (ev: PointerEvent) => {
-      const dx = ev.clientX - startX;
-      const dy = ev.clientY - startY;
+      // Pointer moves in screen px; the canvas is zoomed by `scale`.
+      const dx = (ev.clientX - startX) / scale;
+      const dy = (ev.clientY - startY) / scale;
       const primaryStart = starts.get(element.id)!;
       const moved = { ...primaryStart, x: primaryStart.x + dx, y: primaryStart.y + dy };
       const snap = snapMove(moved, others, canvas);
@@ -126,8 +129,8 @@ export function CanvasElement({
     interaction.current = true;
 
     const onMove = (ev: PointerEvent) => {
-      const dx = ev.clientX - startX;
-      const dy = ev.clientY - startY;
+      const dx = (ev.clientX - startX) / scale;
+      const dy = (ev.clientY - startY) / scale;
       let { x, y, width, height } = start;
       const guides: Guide[] = [];
 
@@ -219,6 +222,8 @@ export function CanvasElement({
                   h.hx === -1 ? -5 : h.hx === 1 ? pos.width - 5 : pos.width / 2 - 5,
                 top:
                   h.hy === -1 ? -5 : h.hy === 1 ? pos.height - 5 : pos.height / 2 - 5,
+                // Keep handles a constant on-screen size regardless of zoom.
+                transform: `scale(${1 / scale})`,
               }}
             />
           ))
