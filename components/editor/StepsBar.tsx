@@ -2,17 +2,24 @@
 
 import { useState } from "react";
 import { useEditorStore } from "@/lib/store/editor-store";
+import { fieldChoices } from "@/lib/logic";
+import { RuleBuilder } from "./inspector/RuleBuilder";
 
 export function StepsBar() {
-  const pages = useEditorStore((s) => s.present.pages);
+  const schema = useEditorStore((s) => s.present);
+  const pages = schema.pages;
   const activePageId = useEditorStore((s) => s.activePageId);
   const setActivePage = useEditorStore((s) => s.setActivePage);
   const addPage = useEditorStore((s) => s.addPage);
   const deletePage = useEditorStore((s) => s.deletePage);
   const renamePage = useEditorStore((s) => s.renamePage);
+  const setPageLogic = useEditorStore((s) => s.setPageLogic);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
+  const [logicPageId, setLogicPageId] = useState<string | null>(null);
+
+  const logicPage = pages.find((p) => p.id === logicPageId);
 
   const startRename = (id: string, name: string) => {
     setEditingId(id);
@@ -24,7 +31,7 @@ export function StepsBar() {
   };
 
   return (
-    <div className="flex h-10 shrink-0 items-center gap-1 border-b border-zinc-200 bg-white px-3">
+    <div className="relative flex h-10 shrink-0 items-center gap-1 border-b border-zinc-200 bg-white px-3">
       <span className="mr-1 text-[11px] font-semibold tracking-wide text-zinc-400 uppercase">
         Steps
       </span>
@@ -60,6 +67,24 @@ export function StepsBar() {
               ) : (
                 <span className="font-medium">{page.name}</span>
               )}
+              <button
+                type="button"
+                aria-label="Step logic"
+                title="Conditional visibility"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLogicPageId((cur) => (cur === page.id ? null : page.id));
+                }}
+                className={`ml-0.5 hover:text-blue-600 ${
+                  page.logic
+                    ? "text-blue-600"
+                    : "text-zinc-300 opacity-0 group-hover:opacity-100"
+                }`}
+              >
+                <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 3v12a3 3 0 003 3h6M18 6l3 3-3 3" />
+                </svg>
+              </button>
               {pages.length > 1 ? (
                 <button
                   type="button"
@@ -68,7 +93,7 @@ export function StepsBar() {
                     e.stopPropagation();
                     deletePage(page.id);
                   }}
-                  className="ml-0.5 text-zinc-300 opacity-0 group-hover:opacity-100 hover:text-red-500"
+                  className="text-zinc-300 opacity-0 group-hover:opacity-100 hover:text-red-500"
                 >
                   <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                     <path d="M6 6l12 12M18 6L6 18" />
@@ -90,6 +115,22 @@ export function StepsBar() {
         </svg>
         Add
       </button>
+
+      {logicPage ? (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setLogicPageId(null)} />
+          <div className="absolute top-full left-3 z-50 mt-1 w-72 rounded-xl border border-zinc-200 bg-white p-3 shadow-xl">
+            <p className="mb-2 text-[11px] font-semibold tracking-wide text-zinc-400 uppercase">
+              Show “{logicPage.name}” when
+            </p>
+            <RuleBuilder
+              rule={logicPage.logic}
+              fields={fieldChoices(schema)}
+              onChange={(logic) => setPageLogic(logicPage.id, logic)}
+            />
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { toJson } from "@/lib/json";
 import { normalizeSchema } from "@/lib/theme";
+import { isElementVisible, isPageVisible } from "@/lib/logic";
 import { isAnswered, isFieldElement, type Values } from "@/components/render/value";
 import type { FormSchema } from "@/lib/types";
 
@@ -36,8 +37,9 @@ export async function POST(req: Request, { params }: Ctx) {
   const schema = normalizeSchema(form.schema as unknown as FormSchema);
   const missing: string[] = [];
   for (const page of schema.pages) {
+    if (!isPageVisible(page, data)) continue;
     for (const el of page.canvas.elements) {
-      if (el.hidden) continue;
+      if (el.hidden || !isElementVisible(el, data)) continue;
       if (isFieldElement(el) && "required" in el && el.required) {
         if (!isAnswered(el, data[el.id])) missing.push(el.id);
       }

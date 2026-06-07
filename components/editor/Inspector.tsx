@@ -5,6 +5,7 @@ import { ELEMENT_REGISTRY } from "./elements";
 import { ContentSection } from "./inspector/ContentSection";
 import { LayoutSection } from "./inspector/LayoutSection";
 import { StyleSection } from "./inspector/StyleSection";
+import { LogicSection } from "./inspector/LogicSection";
 import { ThemePanel } from "./inspector/ThemePanel";
 
 export function Inspector() {
@@ -36,6 +37,7 @@ export function Inspector() {
             <ContentSection element={selected} />
             <LayoutSection element={selected} breakpoint={breakpoint} />
             <StyleSection element={selected} theme={theme} />
+            <LogicSection element={selected} />
           </>
         ) : selectedIds.length > 1 ? (
           <div className="px-4 py-10 text-center text-xs text-zinc-400">

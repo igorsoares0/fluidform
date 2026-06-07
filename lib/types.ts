@@ -48,6 +48,26 @@ export type ElementStyle = {
 
 export type ShadowToken = "none" | "sm" | "md" | "lg" | "xl";
 
+// Conditional logic (spec: field & page visibility driven by answers).
+export type LogicOperator =
+  | "equals"
+  | "notEquals"
+  | "contains"
+  | "greaterThan"
+  | "lessThan";
+
+export type Condition = {
+  fieldId: string; // element id whose answer is tested
+  operator: LogicOperator;
+  value: string;
+};
+
+export type VisibilityRule = {
+  action: "show" | "hide"; // when conditions match, show or hide the target
+  match: "all" | "any"; // AND / OR across conditions
+  conditions: Condition[];
+};
+
 type BaseElement = {
   id: string;
   type: ElementType;
@@ -56,6 +76,7 @@ type BaseElement = {
   locked: boolean;
   hidden: boolean;
   style: ElementStyle;
+  logic?: VisibilityRule;
 };
 
 export type HeadingElement = BaseElement & {
@@ -175,6 +196,7 @@ export type Page = {
   id: string;
   name: string;
   canvas: Canvas;
+  logic?: VisibilityRule;
 };
 
 /**

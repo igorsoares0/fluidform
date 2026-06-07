@@ -14,6 +14,7 @@ import type {
   Position,
   ThemeColors,
   ThemeTokens,
+  VisibilityRule,
 } from "../types";
 
 const HISTORY_LIMIT = 100;
@@ -51,6 +52,7 @@ export type EditorState = {
   deletePage: (id: string) => void;
   renamePage: (id: string, name: string) => void;
   setActivePage: (id: string) => void;
+  setPageLogic: (id: string, logic: VisibilityRule | undefined) => void;
 
   // theme (history-tracked)
   setThemePreset: (name: string) => void;
@@ -183,6 +185,12 @@ export const useEditorStore = create<EditorState>((set, get) => {
 
     setActivePage: (id) =>
       set({ activePageId: id, selectedIds: [], dragGuides: [] }),
+
+    setPageLogic: (id, logic) =>
+      commit((sch) => ({
+        ...sch,
+        pages: sch.pages.map((p) => (p.id === id ? { ...p, logic } : p)),
+      })),
 
     setSaveStatus: (saveStatus) => set({ saveStatus }),
 

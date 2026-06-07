@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { CANVAS_MIN_HEIGHT, CANVAS_WIDTH } from "@/lib/grid";
 import { resolveElementStyle, themeAccent } from "@/lib/theme";
 import { submitResponse } from "@/lib/api";
+import { isElementVisible, isPageVisible } from "@/lib/logic";
 import type { Breakpoint, Element, FormSchema } from "@/lib/types";
 import {
   RenderButton,
@@ -70,14 +71,17 @@ export function FormRenderer({
   const theme = schema.theme;
   const accent = themeAccent(theme);
   const pages = schema.pages;
-  const page = pages[Math.min(pageIndex, pages.length - 1)];
-  const elements = useMemo(
-    () => page.canvas.elements.filter((e) => !e.hidden),
-    [page],
-  );
+  // Pages and fields can be hidden by conditional logic based on current answers.
+  const visiblePages = pages.filter((p) => isPageVisible(p, values));
+  const page =
+    visiblePages[Math.min(pageIndex, visiblePages.length - 1)] ?? pages[0];
+  const pageElements = page.canvas.elements.filter((e) => !e.hidden);
+  const elements = pageElements.filter((e) => isElementVisible(e, values));
 
   const cw = CANVAS_WIDTH[bp];
-  const ch = canvasHeight(elements, bp);
+  // Height stays stable (based on non-hidden elements) so toggling fields
+  // doesn't make the form jump.
+  const ch = canvasHeight(pageElements, bp);
   const containerWidth = Math.min(vw - 32, cw);
   const scale = containerWidth / cw;
 
@@ -102,7 +106,7 @@ export function FormRenderer({
     }
     if (submitting) return;
     if (!validateCurrentPage()) return;
-    const isLast = pageIndex >= pages.length - 1;
+    const isLast = pageIndex >= visiblePages.length - 1;
     if (el.action === "submit" || isLast) {
       if (formId) {
         setSubmitting(true);
@@ -226,9 +230,14 @@ export function FormRenderer({
   }
 
   if (submitted) {
-    const answered = pages
+    const answered = visiblePages
       .flatMap((p) => p.canvas.elements)
-      .filter((e) => isFieldElement(e) && isAnswered(e, values[e.id]))
+      .filter(
+        (e) =>
+          isFieldElement(e) &&
+          isElementVisible(e, values) &&
+          isAnswered(e, values[e.id]),
+      )
       .map((e) => ({ label: fieldLabel(e), value: displayValue(values[e.id]) }));
 
     return (
@@ -265,18 +274,22 @@ export function FormRenderer({
       className="min-h-screen py-10"
       style={{ backgroundColor: theme.tokens.colors.background, fontFamily: theme.tokens.fontFamily }}
     >
-      {pages.length > 1 ? (
+      {visiblePages.length > 1 ? (
         <div className="mx-auto mb-6 w-full max-w-md px-4">
           <div className="mb-1.5 flex justify-between text-xs text-zinc-400">
             <span>{page.name}</span>
             <span>
-              Step {pageIndex + 1} of {pages.length}
+              Step {Math.min(pageIndex + 1, visiblePages.length)} of{" "}
+              {visiblePages.length}
             </span>
           </div>
           <div className="h-1 overflow-hidden rounded-full bg-zinc-200">
             <div
               className="h-full transition-all"
-              style={{ width: `${((pageIndex + 1) / pages.length) * 100}%`, background: accent }}
+              style={{
+                width: `${(Math.min(pageIndex + 1, visiblePages.length) / visiblePages.length) * 100}%`,
+                background: accent,
+              }}
             />
           </div>
         </div>

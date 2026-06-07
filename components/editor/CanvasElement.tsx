@@ -196,6 +196,17 @@ export function CanvasElement({
         {renderElement(element, theme)}
       </div>
 
+      {element.logic ? (
+        <span
+          title="Has conditional logic"
+          className="pointer-events-none absolute -top-2 -left-2 z-10 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-white"
+        >
+          <svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 3v12a3 3 0 003 3h6M18 6l3 3-3 3" />
+          </svg>
+        </span>
+      ) : null}
+
       {selected && !element.locked
         ? HANDLES.map((h) => (
             <span

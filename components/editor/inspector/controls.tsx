@@ -186,14 +186,16 @@ export function SelectField<T extends string>({
   value,
   onChange,
   options,
+  fullWidth,
 }: {
   value: T;
   onChange: (v: T) => void;
   options: { value: T; label: string }[];
+  fullWidth?: boolean;
 }) {
   return (
     <select
-      className={`${fieldCls} w-32 cursor-pointer`}
+      className={`${fieldCls} ${fullWidth ? "w-full" : "w-32"} cursor-pointer`}
       value={value}
       onChange={(e) => onChange(e.target.value as T)}
     >
