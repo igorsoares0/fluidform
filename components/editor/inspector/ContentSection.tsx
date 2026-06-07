@@ -5,6 +5,7 @@ import type {
   ButtonAction,
   Element,
   InputType,
+  ObjectFit,
   TextAlign,
 } from "@/lib/types";
 import {
@@ -57,6 +58,37 @@ export function ContentSection({ element }: { element: Element }) {
               { value: "left", label: "L" },
               { value: "center", label: "C" },
               { value: "right", label: "R" },
+            ]}
+          />
+        </Row>
+      </Section>
+    );
+  }
+
+  if (element.type === "image") {
+    return (
+      <Section title="Content">
+        <Row label="Image URL">
+          <TextField
+            value={element.src}
+            placeholder="https://…"
+            onChange={(src) => updateElement(id, { src })}
+          />
+        </Row>
+        <Row label="Alt text">
+          <TextField
+            value={element.alt}
+            onChange={(alt) => updateElement(id, { alt })}
+          />
+        </Row>
+        <Row label="Fit">
+          <SelectField<ObjectFit>
+            value={element.fit}
+            onChange={(fit) => updateElement(id, { fit })}
+            options={[
+              { value: "cover", label: "Cover" },
+              { value: "contain", label: "Contain" },
+              { value: "fill", label: "Fill" },
             ]}
           />
         </Row>

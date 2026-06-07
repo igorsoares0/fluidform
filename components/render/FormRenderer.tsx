@@ -12,6 +12,7 @@ import {
   RenderInput,
   RenderText,
 } from "./fields";
+import { ImageElement } from "../editor/elements/ImageElement";
 import {
   RenderCheckbox,
   RenderDate,
@@ -132,6 +133,8 @@ export function FormRenderer({
         return <RenderHeading element={el} style={style} />;
       case "text":
         return <RenderText element={el} style={style} />;
+      case "image":
+        return <ImageElement element={el} style={style} />;
       case "button":
         return (
           <RenderButton element={el} style={style} onActivate={() => activateButton(el)} />

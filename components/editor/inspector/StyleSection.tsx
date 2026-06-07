@@ -17,7 +17,8 @@ const hasBox = (t: Element["type"]) =>
   t === "button" ||
   t === "select" ||
   t === "date" ||
-  t === "upload";
+  t === "upload" ||
+  t === "image";
 
 export function StyleSection({
   element,
@@ -41,12 +42,14 @@ export function StyleSection({
 
   return (
     <Section title="Style">
-      <Row label="Text color" onReset={reset("color")}>
-        <ColorField
-          value={st.color ?? "#000000"}
-          onChange={(color) => updateStyle(id, { color })}
-        />
-      </Row>
+      {element.type !== "image" ? (
+        <Row label="Text color" onReset={reset("color")}>
+          <ColorField
+            value={st.color ?? "#000000"}
+            onChange={(color) => updateStyle(id, { color })}
+          />
+        </Row>
+      ) : null}
 
       {element.type === "heading" || element.type === "text" ? (
         <>

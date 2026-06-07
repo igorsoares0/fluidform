@@ -145,6 +145,8 @@ function baseStyle(type: Element["type"], t: ThemeTokens): ElementStyle {
       return { color: t.colors.text };
     case "text":
       return { color: t.colors.mutedText };
+    case "image":
+      return { radius: t.radius };
     case "input":
     case "select":
     case "date":

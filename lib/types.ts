@@ -7,6 +7,7 @@ export type Breakpoint = "desktop" | "tablet" | "mobile";
 export type ElementType =
   | "heading"
   | "text"
+  | "image"
   | "input"
   | "button"
   | "select"
@@ -87,6 +88,16 @@ export type HeadingElement = BaseElement & {
 export type TextElement = BaseElement & {
   type: "text";
   text: string;
+};
+
+export type ObjectFit = "cover" | "contain" | "fill";
+
+/** Image by URL (file upload via UploadThing comes later). */
+export type ImageElement = BaseElement & {
+  type: "image";
+  src: string;
+  alt: string;
+  fit: ObjectFit;
 };
 
 export type InputType = "text" | "email" | "phone" | "number" | "password";
@@ -175,6 +186,7 @@ export type UploadElement = BaseElement & {
 export type Element =
   | HeadingElement
   | TextElement
+  | ImageElement
   | InputElement
   | ButtonElement
   | SelectElement

@@ -5,6 +5,7 @@ import { HeadingElement } from "./HeadingElement";
 import { TextElement } from "./TextElement";
 import { InputElement } from "./InputElement";
 import { ButtonElement } from "./ButtonElement";
+import { ImageElement } from "./ImageElement";
 import {
   CheckboxPreview,
   RadioPreview,
@@ -42,6 +43,13 @@ const ICONS: Record<ElementType, ReactNode> = {
   button: (
     <svg className={ic} viewBox="0 0 24 24" {...svgProps}>
       <rect x="3" y="9" width="18" height="6" rx="3" />
+    </svg>
+  ),
+  image: (
+    <svg className={ic} viewBox="0 0 24 24" {...svgProps}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <circle cx="8.5" cy="8.5" r="1.5" />
+      <path d="M21 15l-5-5L5 21" />
     </svg>
   ),
   select: (
@@ -98,6 +106,7 @@ type RegistryEntry = { label: string; icon: ReactNode };
 export const ELEMENT_REGISTRY: Record<ElementType, RegistryEntry> = {
   heading: { label: "Heading", icon: ICONS.heading },
   text: { label: "Text", icon: ICONS.text },
+  image: { label: "Image", icon: ICONS.image },
   input: { label: "Input", icon: ICONS.input },
   button: { label: "Button", icon: ICONS.button },
   select: { label: "Dropdown", icon: ICONS.select },
@@ -112,7 +121,7 @@ export const ELEMENT_REGISTRY: Record<ElementType, RegistryEntry> = {
 
 /** Grouped element types for the toolbar "Add" menu. */
 export const ELEMENT_GROUPS: { title: string; types: ElementType[] }[] = [
-  { title: "Content", types: ["heading", "text", "button"] },
+  { title: "Content", types: ["heading", "text", "image", "button"] },
   { title: "Inputs", types: ["input", "date", "upload"] },
   { title: "Choice", types: ["select", "radio", "checkbox"] },
   { title: "Feedback", types: ["rating", "nps", "slider"] },
@@ -127,6 +136,8 @@ export function renderElement(element: Element, theme: ThemeConfig): ReactNode {
       return <HeadingElement element={element} style={style} />;
     case "text":
       return <TextElement element={element} style={style} />;
+    case "image":
+      return <ImageElement element={element} style={style} />;
     case "input":
       return <InputElement element={element} style={style} />;
     case "button":

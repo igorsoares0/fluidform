@@ -67,6 +67,18 @@ const factories: Record<ElementType, Factory> = {
     text: "Add your supporting text here.",
     style: { fontSize: 16, fontWeight: 400, textAlign: "center", opacity: 1 },
   }),
+  image: (y) => ({
+    id: uid(),
+    type: "image",
+    name: "Image",
+    position: centeredPosition(360, 240, y),
+    locked: false,
+    hidden: false,
+    src: "",
+    alt: "",
+    fit: "cover",
+    style: { opacity: 1 },
+  }),
   input: (y) => ({
     id: uid(),
     type: "input",
