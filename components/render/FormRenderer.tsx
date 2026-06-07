@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CANVAS_MIN_HEIGHT, CANVAS_WIDTH } from "@/lib/grid";
 import { resolveElementStyle, themeAccent } from "@/lib/theme";
+import { submitResponse } from "@/lib/api";
 import type { Breakpoint, Element, FormSchema } from "@/lib/types";
 import {
   RenderButton,
@@ -44,12 +45,19 @@ function canvasHeight(elements: Element[], bp: Breakpoint): number {
   return max;
 }
 
-export function FormRenderer({ schema }: { schema: FormSchema }) {
+export function FormRenderer({
+  schema,
+  formId,
+}: {
+  schema: FormSchema;
+  formId?: string;
+}) {
   const [vw, setVw] = useState(1024);
   const [pageIndex, setPageIndex] = useState(0);
   const [values, setValues] = useState<Values>({});
   const [errors, setErrors] = useState<Set<string>>(new Set());
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const onResize = () => setVw(window.innerWidth);
@@ -87,14 +95,24 @@ export function FormRenderer({ schema }: { schema: FormSchema }) {
     return missing.size === 0;
   }
 
-  function activateButton(el: Extract<Element, { type: "button" }>) {
+  async function activateButton(el: Extract<Element, { type: "button" }>) {
     if (el.action === "link") {
       if (el.href) window.open(el.href, "_blank", "noopener");
       return;
     }
+    if (submitting) return;
     if (!validateCurrentPage()) return;
     const isLast = pageIndex >= pages.length - 1;
     if (el.action === "submit" || isLast) {
+      if (formId) {
+        setSubmitting(true);
+        const res = await submitResponse(formId, values);
+        setSubmitting(false);
+        if (!res.ok) {
+          if (res.missing) setErrors(new Set(res.missing));
+          return;
+        }
+      }
       setSubmitted(true);
     } else {
       setErrors(new Set());

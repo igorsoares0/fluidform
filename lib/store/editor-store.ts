@@ -1,9 +1,9 @@
 "use client";
 
 import { create } from "zustand";
-import { CANVAS_MIN_HEIGHT, CANVAS_WIDTH } from "../grid";
 import { createElement, uid } from "../defaults";
-import { defaultTheme, normalizeSchema, presetTheme } from "../theme";
+import { normalizeSchema, presetTheme } from "../theme";
+import { createInitialSchema, createPage } from "../schema-factory";
 import type { Guide } from "../snapping";
 import type {
   Breakpoint,
@@ -24,34 +24,9 @@ function clone<T>(value: T): T {
     : JSON.parse(JSON.stringify(value));
 }
 
-function createPage(name: string): Page {
-  return {
-    id: uid(),
-    name,
-    canvas: {
-      width: CANVAS_WIDTH.desktop,
-      minHeight: CANVAS_MIN_HEIGHT,
-      elements: [],
-    },
-  };
-}
-
-function createInitialPage(): Page {
-  return createPage("Page 1");
-}
-
-export function createInitialSchema(): FormSchema {
-  const page = createInitialPage();
-  return {
-    id: uid(),
-    title: "Untitled form",
-    theme: defaultTheme(),
-    pages: [page],
-    settings: { showProgress: false },
-  };
-}
-
 type ReorderDir = "up" | "down" | "front" | "back";
+
+export type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 export type EditorState = {
   present: FormSchema;
@@ -61,6 +36,7 @@ export type EditorState = {
   selectedIds: string[];
   breakpoint: Breakpoint;
   dragGuides: Guide[];
+  saveStatus: SaveStatus;
 
   // selectors-as-helpers
   activePage: () => Page;
@@ -68,6 +44,7 @@ export type EditorState = {
 
   // persistence
   loadSchema: (schema: FormSchema) => void;
+  setSaveStatus: (status: SaveStatus) => void;
 
   // pages / steps
   addPage: () => void;
@@ -157,6 +134,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
     selectedIds: [],
     breakpoint: "desktop",
     dragGuides: [],
+    saveStatus: "idle",
 
     activePage: () => {
       const s = get();
@@ -205,6 +183,8 @@ export const useEditorStore = create<EditorState>((set, get) => {
 
     setActivePage: (id) =>
       set({ activePageId: id, selectedIds: [], dragGuides: [] }),
+
+    setSaveStatus: (saveStatus) => set({ saveStatus }),
 
     setThemePreset: (name) =>
       commit((sch) => ({ ...sch, theme: presetTheme(name) })),

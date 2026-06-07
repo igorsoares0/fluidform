@@ -1,14 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEditorStore } from "@/lib/store/editor-store";
-import { saveSchema } from "@/lib/persistence";
+import { saveForm } from "@/lib/api";
 import type { Breakpoint, ElementType } from "@/lib/types";
 import { ELEMENT_GROUPS, ELEMENT_REGISTRY } from "./elements";
 import { Segmented } from "./inspector/controls";
 
-export function Toolbar() {
+const SAVE_LABEL: Record<string, string> = {
+  idle: "",
+  saving: "Saving…",
+  saved: "Saved",
+  error: "Save failed",
+};
+
+export function Toolbar({ formId }: { formId: string }) {
   const title = useEditorStore((s) => s.present.title);
   const setTitle = useEditorStore((s) => s.setTitle);
   const addElement = useEditorStore((s) => s.addElement);
@@ -18,6 +26,7 @@ export function Toolbar() {
   const redo = useEditorStore((s) => s.redo);
   const canUndo = useEditorStore((s) => s.past.length > 0);
   const canRedo = useEditorStore((s) => s.future.length > 0);
+  const saveStatus = useEditorStore((s) => s.saveStatus);
 
   const [addOpen, setAddOpen] = useState(false);
 
@@ -29,15 +38,20 @@ export function Toolbar() {
   return (
     <header className="relative z-30 flex h-14 shrink-0 items-center gap-4 border-b border-zinc-200 bg-white px-4">
       {/* Brand + title */}
-      <div className="flex items-center gap-3">
-        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-600 text-sm font-bold text-white">
+      <div className="flex items-center gap-2">
+        <Link
+          href="/"
+          title="Dashboard"
+          className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-600 text-sm font-bold text-white hover:bg-blue-700"
+        >
           F
-        </div>
+        </Link>
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-44 rounded-md px-2 py-1 text-sm font-medium text-zinc-800 outline-none hover:bg-zinc-100 focus:bg-zinc-100"
+          className="w-40 rounded-md px-2 py-1 text-sm font-medium text-zinc-800 outline-none hover:bg-zinc-100 focus:bg-zinc-100"
         />
+        <span className="w-16 text-xs text-zinc-400">{SAVE_LABEL[saveStatus]}</span>
       </div>
 
       <div className="h-6 w-px bg-zinc-200" />
@@ -122,12 +136,16 @@ export function Toolbar() {
 
         <div className="h-6 w-px bg-zinc-200" />
 
-        {/* Preview: flush latest schema, then open the public renderer. */}
+        {/* Preview: flush latest schema, then open the public form. */}
         <button
           type="button"
-          onClick={() => {
-            saveSchema(useEditorStore.getState().present);
-            window.open("/preview", "_blank", "noopener");
+          onClick={async () => {
+            try {
+              await saveForm(formId, useEditorStore.getState().present);
+            } catch {
+              /* open anyway with last saved version */
+            }
+            window.open(`/f/${formId}`, "_blank", "noopener");
           }}
           className="rounded-md bg-blue-600 px-3.5 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
         >

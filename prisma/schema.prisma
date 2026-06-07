@@ -1,0 +1,34 @@
+// FluidForm database schema.
+// A Form stores the entire FormSchema JSON (see lib/types.ts); the `title`
+// column mirrors schema.title for cheap listing. Responses store collected
+// field values keyed by element id.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Form {
+  id        String   @id @default(cuid())
+  title     String
+  schema    Json
+  published Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  responses Response[]
+}
+
+model Response {
+  id        String   @id @default(cuid())
+  formId    String
+  data      Json
+  createdAt DateTime @default(now())
+
+  form Form @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  @@index([formId])
+}
