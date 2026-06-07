@@ -39,12 +39,14 @@ function breakpointForWidth(w: number): Breakpoint {
 }
 
 function canvasHeight(elements: Element[], bp: Breakpoint): number {
-  let max = CANVAS_MIN_HEIGHT;
+  // Tight fit (floored at the base height): no trailing gap, so a full-bleed
+  // element sits flush with the bottom edge (mirrors the editor surface).
+  let contentBottom = CANVAS_MIN_HEIGHT;
   for (const el of elements) {
     const p = el.position[bp];
-    max = Math.max(max, p.y + p.height + 48);
+    contentBottom = Math.max(contentBottom, p.y + p.height);
   }
-  return max;
+  return contentBottom;
 }
 
 export function FormRenderer({
@@ -83,8 +85,10 @@ export function FormRenderer({
   // Height stays stable (based on non-hidden elements) so toggling fields
   // doesn't make the form jump.
   const ch = canvasHeight(pageElements, bp);
-  const containerWidth = Math.min(vw - 32, cw);
-  const scale = containerWidth / cw;
+  // Scale the fixed-width canvas to fill the full viewport width so the design
+  // is edge-to-edge (full-bleed), matching the editor. This can upscale on wide
+  // screens — the whole canvas scales proportionally, like a landing page.
+  const scale = vw / cw;
 
   const setValue = (id: string, v: FieldValue) =>
     setValues((prev) => ({ ...prev, [id]: v }));
@@ -274,7 +278,7 @@ export function FormRenderer({
 
   return (
     <div
-      className="min-h-screen py-10"
+      className="min-h-screen overflow-x-hidden"
       style={{ backgroundColor: theme.tokens.colors.background, fontFamily: theme.tokens.fontFamily }}
     >
       {visiblePages.length > 1 ? (
@@ -298,9 +302,9 @@ export function FormRenderer({
         </div>
       ) : null}
 
-      <div className="relative mx-auto" style={{ width: cw * scale, height: ch * scale }}>
+      <div className="relative" style={{ width: cw * scale, height: ch * scale }}>
         <div
-          className="absolute top-0 left-0 overflow-hidden rounded-xl"
+          className="absolute top-0 left-0 overflow-hidden"
           style={{
             width: cw,
             height: ch,

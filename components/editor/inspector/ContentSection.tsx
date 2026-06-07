@@ -1,6 +1,7 @@
 "use client";
 
 import { useEditorStore } from "@/lib/store/editor-store";
+import { CANVAS_WIDTH } from "@/lib/grid";
 import type {
   ButtonAction,
   Element,
@@ -65,6 +66,25 @@ export function ContentSection({ element }: { element: Element }) {
     );
   }
 
+  // Stretch the image to cover the whole canvas frame (full-bleed). Height is
+  // the surface height implied by the *other* elements, floored at the base
+  // min height, so the image lands flush with the bottom edge (see Canvas
+  // surfaceHeight / FormRenderer canvasHeight).
+  const fillCanvas = () => {
+    const s = useEditorStore.getState();
+    const bp = s.breakpoint;
+    const page = s.present.pages.find((p) => p.id === s.activePageId);
+    if (!page) return;
+    let otherBottom = 0;
+    for (const el of page.canvas.elements) {
+      if (el.id === id || el.hidden) continue;
+      const p = el.position[bp];
+      otherBottom = Math.max(otherBottom, p.y + p.height);
+    }
+    const height = Math.max(page.canvas.minHeight, otherBottom);
+    s.commitPosition(id, bp, { x: 0, y: 0, width: CANVAS_WIDTH[bp], height });
+  };
+
   if (element.type === "image") {
     return (
       <Section title="Content">
@@ -92,6 +112,17 @@ export function ContentSection({ element }: { element: Element }) {
             ]}
           />
         </Row>
+        <button
+          type="button"
+          onClick={fillCanvas}
+          className="flex w-full items-center justify-center gap-1.5 rounded-md border border-zinc-200 bg-white px-2 py-1.5 text-xs font-medium text-zinc-700 hover:border-blue-500 hover:text-blue-600"
+        >
+          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <path d="M9 3v18M15 3v18M3 9h18M3 15h18" />
+          </svg>
+          Preencher canvas
+        </button>
       </Section>
     );
   }

@@ -9,19 +9,22 @@ import { AlignmentGuides } from "./AlignmentGuides";
 
 const PAD = 48; // breathing room around the canvas, in screen px
 
-/** Surface height grows to fit any elements placed below the base minHeight. */
+/** Surface height fits content tightly (floored at the base minHeight). */
 function surfaceHeight(
   elements: Element[],
   bp: Breakpoint,
   minHeight: number,
 ): number {
-  let max = minHeight;
+  // No trailing breathing room: the lowest element's bottom *is* the surface
+  // bottom, so a full-bleed element sits flush and the bottom edge stays a snap
+  // target (no "chase"). Scroll padding lives outside the surface (PAD).
+  let contentBottom = minHeight;
   for (const el of elements) {
     if (el.hidden) continue;
     const p = el.position[bp];
-    max = Math.max(max, p.y + p.height + 80);
+    contentBottom = Math.max(contentBottom, p.y + p.height);
   }
-  return max;
+  return contentBottom;
 }
 
 export function Canvas() {
